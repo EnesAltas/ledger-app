@@ -1,5 +1,5 @@
-const User = require('../../models/database/user');
-const Transaction = require('../../models/database/transaction');
+const userRepository = require('../../repositories/user');
+const transactionRepository = require('../../repositories/transaction');
 const RequestResponseService = require('../RequestResponseService');
 const uuidGenerator = require('../../utils/uuidGenerator');
 const tryCatchProxy = require('../../utils/tryCatchProxy');
@@ -26,7 +26,9 @@ class UserService {
             return RequestResponseService.getResponse('Insufficient balance!', 400);
         }
 
-        const recipientUser = await User.findOne({ user_name: recipient });
+        const recipientUser = await userRepository.getUser(
+            { user_name: recipient }
+        );
 
         if (!recipientUser) {
             return RequestResponseService.getResponse('Recipient not found!', 404);
@@ -42,7 +44,7 @@ class UserService {
         await user.save();
         await recipientUser.save();
 
-        const newTransaction = new Transaction({
+        await transactionRepository.createTransaction({
             transaction_id: uuidGenerator(),
             from_balance: user.balance,
             to_balance: recipientUser.balance,
@@ -51,8 +53,6 @@ class UserService {
             transaction_amount: amount,
             transaction_date: Date.now(),
         });
-
-        await newTransaction.save();
 
         return RequestResponseService.getResponse('Transfer success!', 200);
     };

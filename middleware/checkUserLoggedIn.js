@@ -1,4 +1,4 @@
-const User = require('../models/database/user');
+const userRepository = require('../repositories/user');
 
 /**
  * @param {object} request
@@ -14,7 +14,9 @@ const checkUserLoggedIn = async (request, response, next) => {
             return response.status(401).json({ message: 'Login required!' });
         }
 
-        const user = await User.findOne({ user_id: userId });
+        const user = await userRepository.getUser(
+            { user_id: userId }
+        );
 
         if (!user) {
             return response.status(404).json({ message: 'User not found!' });

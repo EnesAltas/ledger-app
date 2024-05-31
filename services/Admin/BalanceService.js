@@ -1,5 +1,5 @@
-const User = require('../../models/database/user');
-const Transaction = require('../../models/database/transaction');
+const userRepository = require('../../repositories/user');
+const transactionRepository = require('../../repositories/transaction');
 const RequestResponseService = require('../RequestResponseService');
 const uuidGenerator = require('../../utils/uuidGenerator');
 const tryCatchProxy = require('../../utils/tryCatchProxy');
@@ -9,7 +9,7 @@ class BalanceService {
      * @returns {object}
      */
     async getAllUsersBalance() {
-        const usersBalance = await User.find(
+        const usersBalance = await userRepository.getUsers(
             {},
             { user_name: 1, balance: 1, user_id: 1, _id: 0 }
         );
@@ -22,15 +22,15 @@ class BalanceService {
      * @returns {object}
      */
     async getUserBalanceById(request) {
-        const user = await User.findOne(
+        const user = await userRepository.getUser(
             { user_id: request.params.id },
             { user_name: 1, balance: 1, user_id: 1, _id: 0 }
         );
-    
+
         if (!user) {
             return RequestResponseService.getResponse('User not found!', 404);
         }
-    
+
         return RequestResponseService.getResponse(true, 200, user);
     };
 
@@ -41,7 +41,7 @@ class BalanceService {
     async addBalanceToUser(request) {
         const { user, params: { id }, body: { credit } } = request;
 
-        const targetUser = await User.findOneAndUpdate(
+        const targetUser = await userRepository.updateUser(
             { user_id: id },
             { $inc:
                 { balance: credit }
@@ -53,7 +53,7 @@ class BalanceService {
             return RequestResponseService.getResponse('User not found!', 404);
         }
 
-        const newTransaction = new Transaction({
+        await transactionRepository.createTransaction({
             transaction_id: uuidGenerator(),
             from_balance: user.balance,
             to_balance: targetUser.balance,
@@ -62,8 +62,6 @@ class BalanceService {
             transaction_amount: credit,
             transaction_date: Date.now(),
         });
-
-        await newTransaction.save();
 
         return RequestResponseService.getResponse(true, 200, targetUser);
     };
@@ -75,7 +73,9 @@ class BalanceService {
     async getBalanceAtTime(request) {
         const { body: { user_name, date_time } } = request;
 
-        const targetUser = await User.findOne({ user_name: user_name });
+        const targetUser = await userRepository.getUser(
+            { user_name }
+        );
 
         if (!targetUser) {
             return RequestResponseService.getResponse('User not found!', 404);
@@ -83,18 +83,22 @@ class BalanceService {
 
         const targetDateTime = new Date(date_time);
 
-        const transactions = await Transaction.find({
-            $or: [
-                { from: targetUser._id },
-                { to: targetUser._id }
-            ],
-            transaction_date: { $lt: targetDateTime }
-        }).sort({ transaction_date: -1 }).limit(1);
+        const transactions = await transactionRepository.getTransactions(
+            {
+                $or: [
+                    { from: targetUser._id },
+                    { to: targetUser._id }
+                ],
+                transaction_date: { $lt: targetDateTime }
+            },
+            { transaction_date: -1 },
+            1
+        );
 
-        if (transactions.length === 0) {
+        if (!transactions.length) {
             return RequestResponseService.getResponse('No transactions found!', 404);
         }
-        
+
         const balance = String(transactions[0].from) === String(targetUser._id)
             ? transactions[0].from_balance
             : transactions[0].to_balance;

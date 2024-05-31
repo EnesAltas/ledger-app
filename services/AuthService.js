@@ -1,4 +1,4 @@
-const User = require('../models/database/user');
+const userRepository = require('../repositories/user');
 const RequestResponseService = require('./RequestResponseService');
 const tryCatchProxy = require('../utils/tryCatchProxy');
 const uuidGenerator = require('../utils/uuidGenerator');
@@ -12,7 +12,9 @@ class AuthService {
     async login(request) {
         const { user_name, password } = request.body;
 
-        const user = await User.findOne({ user_name });
+        const user = await userRepository.getUser(
+            { user_name }
+        );
 
         if (!user) {
             return RequestResponseService.getResponse('Auth failed!', 404);
@@ -36,20 +38,20 @@ class AuthService {
     async register(request) {
         const { user_name, password } = request.body;
 
-        const user = await User.findOne({ user_name });
+        const user = await userRepository.getUser(
+            { user_name }
+        );
 
         if (user) {
             return RequestResponseService.getResponse('User already exists!', 404);
         }
 
-        const newUser = new User({
+        const newUser = await userRepository.createUser({
             user_id: uuidGenerator(),
             user_name,
             password: hashText(password),
             balance: 0
         });
-
-        await newUser.save();
 
         return RequestResponseService.getResponse(true, 201, newUser);
     };
