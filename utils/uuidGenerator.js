@@ -6,5 +6,5 @@ const { v4: uuidv4 } = require('uuid');
 const uuidGenerator = () => {
     return uuidv4();
 };
-  
+
 module.exports = uuidGenerator;

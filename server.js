@@ -7,7 +7,7 @@ const adminRoutes = require('./routes/adminRoutes');
 const userRoutes = require('./routes/userRoutes');
 const appRoutes = require('./routes/appRoutes');
 const connectDB = require('./utils/databaseHelper');
-const { notFoundHandler, jsonErrorHandler} = require('./middleware/errorHandler');
+const { notFoundHandler, jsonErrorHandler } = require('./middleware/errorHandler');
 
 const app = express();
 const PORT = process.env.PORT;
@@ -31,4 +31,4 @@ app.use('/', appRoutes);
 app.use(notFoundHandler);
 app.use(jsonErrorHandler);
 
-app.listen(PORT, () => console.log(`Server is runnig on port ${ PORT }`));
+app.listen(PORT, () => console.log(`Server is running on port ${ PORT }`));
