@@ -31,4 +31,4 @@ app.use('/', appRoutes);
 app.use(notFoundHandler);
 app.use(jsonErrorHandler);
 
-app.listen(PORT, () => console.log(`Serve is running on port ${ PORT }`));
+app.listen(PORT, () => console.log(`Server is running on port ${ PORT }`));
