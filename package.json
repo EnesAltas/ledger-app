@@ -2,10 +2,10 @@
   "name": "backend-path",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
+  "main": "app/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon server.js"
+    "start": "node app/server.js"
   },
   "author": "Enes Altaş",
   "license": "ISC",
