@@ -1,7 +1,6 @@
 version: "3"
 
 services:
-  #MongoDB
   mongo_db:
     container_name: database_container
     image: mongo:latest
@@ -19,6 +18,15 @@ services:
       DB_URI: mongodb://mongo_db:27017/ledger_app
     depends_on:
       - mongo_db
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - 80:80
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - app
 
 volumes:
   mongo_db: {}
